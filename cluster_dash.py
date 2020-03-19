@@ -33,10 +33,8 @@ global curr_full_cell_table
 global sync_plots
 
 # Grab data ------------------------------------------------------------------------------------
-vol_prev = 7
+vol_prev = 45
 vol_curr = vol_prev + 1
-sync_plots = True
-
 
 coord_labels = ['x_voxels', 'y_voxels', 'z_voxels']
 
@@ -217,9 +215,12 @@ app.layout = html.Div([
         Input('prev_table', 'columns')
     ],
     [
+        State('prev_plot', 'relayoutData'),
         State('prev_table', 'data'),
     ])
-def update_prev(camera_angle, columns, rows):
+def update_prev(curr_camera_angle, columns, prev_camera_angle, rows):
+    global sync_plots
+
     # updating table values
     new_data = pd.DataFrame(rows, columns=[c['name'] for c in columns])
     new_clusters = new_data['cluster'].to_numpy().astype(str)
@@ -239,7 +240,12 @@ def update_prev(camera_angle, columns, rows):
     updated_layout = layout
     if sync_plots:
         try:
-            updated_layout['scene']['camera'] = camera_angle['scene.camera']
+            updated_layout['scene']['camera'] = curr_camera_angle['scene.camera']
+        except:
+            pass
+    else:
+        try:
+            updated_layout['scene']['camera'] = prev_camera_angle['scene.camera']
         except:
             pass
 
@@ -266,9 +272,12 @@ def update_prev(camera_angle, columns, rows):
         Input('curr_table', 'columns')
     ],
     [
+        State('curr_plot', 'relayoutData'),
         State('curr_table', 'data'),
     ])
-def update_curr(camera_angle, columns, rows):
+def update_curr(prev_camera_angle, columns, curr_camera_angle, rows):
+    global sync_plots
+
     # updating table values
     new_data = pd.DataFrame(rows, columns=[c['name'] for c in columns])
     new_clusters = new_data['cluster'].to_numpy().astype(str)
@@ -288,7 +297,12 @@ def update_curr(camera_angle, columns, rows):
     updated_layout = layout
     if sync_plots:
         try:
-            updated_layout['scene']['camera'] = camera_angle['scene.camera']
+            updated_layout['scene']['camera'] = prev_camera_angle['scene.camera']
+        except:
+            pass
+    else:
+        try:
+            updated_layout['scene']['camera'] = curr_camera_angle['scene.camera']
         except:
             pass
 
@@ -354,4 +368,7 @@ def on_sync_press(n_clicks):
 
 
 if __name__ == '__main__':
+    global sync_plots
+    sync_plots = True
+
     app.run_server(debug=True)
