@@ -1,5 +1,6 @@
 # Cluster-Dash
 Dashboard for C. elegan cell organization and clustering
+![Dashboard Image](https://i.imgur.com/WdENqpa.png)
 
 # Installing components
 If you are using an Anaconda distribution of Python, make sure you do `conda install -c plotly plotly=4.5.4` and `conda install -c conda-forge dash`. This installs the necessary components of the dashboard from Plotly.
