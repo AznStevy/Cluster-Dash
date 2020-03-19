@@ -14,6 +14,27 @@ colors = {
 coord_labels = ['x_voxels', 'y_voxels', 'z_voxels']
 
 
+def order_seam_cell_table(seam_cell_table):
+    cell_names = np.array(['H0L', 'H0R', 'H1L', 'H1R', 'H2L', 'H2R', 'V1L', 'V1R', 'V2L',
+                           'V2R', 'V3L', 'V3R', 'V4L', 'V4R', 'V5L', 'V5R', 'V6L', 'V6R', 'TL', 'TR'])
+
+    index_col = []
+    last_cell_idx = 0
+    for row_idx, row in seam_cell_table.iterrows():
+        cell_name = row['name']
+        cell_idx = np.argwhere(cell_name == cell_names)
+
+        if cell_idx:
+            index_col.append(cell_idx)
+        else:
+            cell_idx = (np.ceil(last_cell_idx + 0.0001) - last_cell_idx)/2
+            index_col.append(cell_idx)
+
+    seam_cell_table['true_index'] = tuple(index_col)
+    seam_cell_table = seam_cell_table.sort_values(by=['true_index'])
+    return seam_cell_table
+
+
 def get_lattice_mat(num_seam_cells):
     adj_mat = np.zeros((num_seam_cells, num_seam_cells))
 

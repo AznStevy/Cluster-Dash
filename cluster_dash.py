@@ -26,22 +26,25 @@ def annotation_file(vol_num): return folder_name(
     vol_num) + 'straightened_annotations\\straightened_annotations.csv'
 
 
-# Grab data ------------------------------------------------------------------------------------
-vol_prev = 45
-vol_curr = vol_prev + 1
-
-coord_labels = ['x_voxels', 'y_voxels', 'z_voxels']
-
 global prev_full_seam_table
 global curr_full_seam_table
 global prev_full_cell_table
 global curr_full_cell_table
+global sync_plots
+
+# Grab data ------------------------------------------------------------------------------------
+vol_prev = 7
+vol_curr = vol_prev + 1
+sync_plots = True
+
+
+coord_labels = ['x_voxels', 'y_voxels', 'z_voxels']
 
 # get seam files
 prev_seam_file = lattice_file(vol_prev)
 curr_seam_file = lattice_file(vol_curr)
-prev_full_seam_table = pd.read_csv(prev_seam_file)
-curr_full_seam_table = pd.read_csv(curr_seam_file)
+prev_full_seam_table = order_seam_cell_table(pd.read_csv(prev_seam_file))
+curr_full_seam_table = order_seam_cell_table(pd.read_csv(curr_seam_file))
 # get annotation files
 prev_annotation_file = annotation_file(vol_prev)
 curr_annotation_file = annotation_file(vol_curr)
@@ -194,6 +197,8 @@ app.layout = html.Div([
     html.Div(children=[
         html.Button('Output CSVs',
                     id='output-button'),
+        html.Button('Unsync Plots',
+                    id='sync-button'),
         html.P(id='placeholder')
     ])
 ])
@@ -232,10 +237,11 @@ def update_prev(camera_angle, columns, rows):
 
     # updating camera angle
     updated_layout = layout
-    try:
-        updated_layout['scene']['camera'] = camera_angle['scene.camera']
-    except:
-        pass
+    if sync_plots:
+        try:
+            updated_layout['scene']['camera'] = camera_angle['scene.camera']
+        except:
+            pass
 
     # update data table
     for row_idx, row in enumerate(rows):
@@ -280,10 +286,11 @@ def update_curr(camera_angle, columns, rows):
 
     # updating camera angle
     updated_layout = layout
-    try:
-        updated_layout['scene']['camera'] = camera_angle['scene.camera']
-    except:
-        pass
+    if sync_plots:
+        try:
+            updated_layout['scene']['camera'] = camera_angle['scene.camera']
+        except:
+            pass
 
     # update data table
     for row_idx, row in enumerate(rows):
@@ -304,6 +311,9 @@ def update_curr(camera_angle, columns, rows):
     [Input('output-button', 'n_clicks')]
 )
 def on_save_press(n_clicks):
+    if not n_clicks:
+        return []
+
     output_folder = 'output'
     if not os.path.isdir(output_folder):
         os.mkdir(output_folder)
@@ -321,6 +331,26 @@ def on_save_press(n_clicks):
     curr_output_table.to_csv(curr_filename, index=False)
 
     return []
+
+
+@app.callback(
+    Output('sync-button', 'value'),
+    [Input('sync-button', 'n_clicks')]
+)
+def on_sync_press(n_clicks):
+    global sync_plots
+
+    if not n_clicks:
+        return 'Unsync Plots'
+
+    sync_plots = not sync_plots
+
+    if sync_plots:
+        new_button_text = 'Unsync Plots'
+    else:
+        new_button_text = 'Sync Plots'
+
+    return new_button_text
 
 
 if __name__ == '__main__':
